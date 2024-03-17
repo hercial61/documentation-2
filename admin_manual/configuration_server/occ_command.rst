@@ -1,3 +1,5 @@
+.. _occ:
+
 =====================
 Using the occ command
 =====================
@@ -16,6 +18,7 @@ occ command Directory
 ---------------------
 
 * :ref:`http_user_label`
+* :ref:`run_commands_in_maintenance_mode`
 * :ref:`apps_commands_label`
 * :ref:`background_jobs_selector_label`
 * :ref:`config_commands_label`
@@ -40,6 +43,8 @@ occ command Directory
 * :ref:`command_line_upgrade_label`
 * :ref:`two_factor_auth_label`
 * :ref:`disable_user_label`
+* :ref:`system_tags_commands_label`
+* :ref:`antivirus_commands_label`
 * `Debugging`_
 
 .. _http_user_label:
@@ -159,6 +164,17 @@ This output option is available on all list and list-like commands:
 ``status``, ``check``, ``app:list``, ``config:list``, ``encryption:status``
 and ``encryption:list-modules``
 
+Environment variables
+^^^^^^^^^^^^^^^^^^^^^
+
+``sudo`` does not forward environment variables by default. Put the variables before the ``php`` command::
+
+  sudo -u www-data NC_debug=true php occ status
+
+Alternatively, you can ``export`` the variable or use the ``-E`` switch for ``sudo``::
+
+  NC_debug=true sudo -E -u www-data php occ status
+
 Enabling autocompletion
 -----------------------
 
@@ -185,6 +201,20 @@ you need to specify ``--program occ`` after the ``--generate-hook``.
 If you want the completion to apply automatically for all new shell sessions, add the command to your
 shell's profile (eg. ``~/.bash_profile`` or ``~/.zshrc``).
 
+.. _run_commands_in_maintenance_mode:
+
+Run commands in maintenance mode
+--------------------------------
+
+In maintenance mode, apps are not loaded [1]_, so commands from apps are unavailable. Commands integrated into Nextcloud server are available in maintenance mode.
+
+We discourage the use of maintenance mode unless the command explicitly prompts you to do so or unless the commands' documentation explicitly states that maintenance mode should be used.
+
+A command may use events to communicate with other apps. An app can only react to an event when loaded. Example: The command user:delete deletes a user account. UserDeletedEvent is emitted. Calendar app implements an event listener to delete user data [2]_. In maintenance mode, the Calendar app is not loaded, and hence the user data not deleted.
+
+.. [1] Exception: `The settings app is loaded <https://github.com/nextcloud/server/blob/75f17b60945e15effc3eea41393eef2b13937226/lib/base.php#L780>`_
+.. [2] `Calendar app event listener for UserDeletedEvent <https://github.com/nextcloud/calendar/blob/87e8586971a8676dc15a90f0cd969274678b7009/lib/Listener/UserDeletedListener.php>`_
+
 .. _apps_commands_label:
 
 Apps commands
@@ -209,20 +239,49 @@ Install but don't enable::
 
  sudo -u www-data php occ app:install --keep-disabled twofactor_totp
 
+Install regardless of the Nextcloud version requirement::
+
+ sudo -u www-data php occ app:install --force twofactor_totp
+
 List all of your installed apps, and show whether they are
 enabled or disabled::
 
  sudo -u www-data php occ app:list
+
+List non-shipped installed apps only::
+
+ sudo -u www-data php occ app:list --shipped false
 
 Enable an app, for example the External Storage Support app::
 
  sudo -u www-data php occ app:enable files_external
  files_external enabled
 
+Enable an app regardless of the Nextcloud version requirement::
+
+ sudo -u www-data php occ app:enable --force files_external
+ files_external enabled
+
+Enable an app for specific groups of users::
+
+ sudo -u www-data php occ app:enable --groups admin --groups sales files_external
+ files_external enabled for groups: admin, sales
+
 Disable an app::
 
  sudo -u www-data php occ app:disable files_external
  files_external disabled
+
+Disable and remove an app::
+
+ sudo -u www-data php occ app:remove files_external
+ files_external disabled
+ files_external 1.21.0 removed
+
+Remove an app, but keep the app data::
+
+ sudo -u www-data php occ app:remove --keep-data files_external
+ files_external 1.21.0 removed
 
 You can get the full filepath to an app::
 
@@ -236,6 +295,10 @@ To update an app, for instance Contacts::
 To update all apps::
 
     sudo -u www-data php occ app:update --all
+
+To show available update(s) without updating::
+
+    sudo -u www-data php occ app:update --showonly
 
 .. _background_jobs_selector_label:
 
@@ -279,6 +342,21 @@ The ``config`` commands are used to configure the Nextcloud server::
   config:system:delete   Delete a system config value
   config:system:get      Get a system config value
   config:system:set      Set a system config value
+
+
+While setting a configuration value, multiple options are available:
+
+     - ``--value=VALUE`` change the configuration value
+     - ``--type=TYPE`` change the type of the value. Use carefully; can break your instance
+     - ``--lazy|--no-lazy`` set value as `lazy`
+     - ``--sensitive|--no-sensitive`` set value as `sensitive`
+     - ``--update-only`` only updates if a value is already stored
+
+.. note::
+	See `Appconfig Concepts`_ to learn more about `typed value`, `lazy` and `sensitive` flag.
+
+.. _Appconfig Concepts: https://docs.nextcloud.com/server/latest/developer_manual/digging_deeper/config/appconfig.html#concept-overview
+
 
 You can list all configuration values with one command::
 
@@ -434,17 +512,16 @@ Dav commands
 A set of commands to create and manage addressbooks and calendars::
 
  dav
-  dav:create-addressbook        Create a dav addressbook
-  dav:create-calendar           Create a dav calendar
-  dav:delete-calendar           Delete a dav calendar
-  dav:list-calendars            List all calendars of a user
-  dav:move-calendar             Move a calendar from a user to another
-  dav:remove-invalid-shares     Remove invalid dav shares
-  dav:send-event-reminders      Sends event reminders
-  dav:sync-birthday-calendar    Synchronizes the birthday calendar
-  dav:sync-system-addressbook   Synchronizes users to the system
-                                addressbook
-
+  dav:create-addressbook                 Create a dav addressbook
+  dav:create-calendar                    Create a dav calendar
+  dav:delete-calendar                    Delete a dav calendar
+  dav:fix-missing-caldav-changes         Insert missing calendarchanges rows for existing events
+  dav:list-calendars                     List all calendars of a user
+  dav:move-calendar                      Move a calendar from an user to another
+  dav:remove-invalid-shares              Remove invalid dav shares
+  dav:send-event-reminders               Sends event reminders
+  dav:sync-birthday-calendar             Synchronizes the birthday calendar
+  dav:sync-system-addressbook            Synchronizes users to the system addressbook
 
 The syntax for ``dav:create-addressbook`` and  ``dav:create-calendar`` is
 ``dav:create-addressbook [user] [name]``. This example creates the addressbook
@@ -476,6 +553,8 @@ This example will list all calendars for user annie::
 
  sudo -u www-data php occ dav:list-calendars annie
 
+``dav:dav:fix-missing-caldav-changes [user]`` tries to restore calendar sync changes when data in the calendarchanges table has been lost. If the user ID is omitted, the command runs for all users. This can take a while.
+
 ``dav::move-calendar [name] [sourceuid] [destinationuid]`` allows the admin
 to move a calendar named ``name`` from a user ``sourceuid`` to the user
 ``destinationuid``. You can use the force option `-f` to enforce the move if there
@@ -499,8 +578,14 @@ bernie::
 
  sudo -u www-data php occ dav:sync-birthday-calendar bernie
 
-``dav:sync-system-addressbook`` synchronizes all users to the system
-addressbook::
+
+.. _occ-dav-sync-system-address-book:
+
+Sync system address book
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+``dav:sync-system-addressbook`` synchronizes all users to the :ref:`system
+address book<system-address-book>`::
 
  sudo -u www-data php occ dav:sync-system-addressbook
 
@@ -559,6 +644,7 @@ Encryption
   encryption:decrypt-all               Disable server-side encryption and
                                        decrypt all files
   encryption:disable                   Disable encryption
+  encryption:drop-legacy-filekey       Drop legacy filekey for files still using it
   encryption:enable                    Enable encryption
   encryption:enable-master-key         Enable the master key. Only available
                                        for fresh installations with no existing
@@ -605,10 +691,7 @@ user::
 
  sudo -u www-data php occ encryption:decrypt freda
 
-Users must have enabled recovery keys on their Personal pages. You must first
-put your Nextcloud server into :ref:`maintenance
-mode <maintenance_commands_label>` to prevent any user activity until
-decryption is completed.
+Users must have enabled recovery keys on their Personal pages.
 
 Note that if you do not have master key/recovery key enabled, you can ONLY
 decrypt files per user, one user at a time and NOT when in maintenance mode.
@@ -623,6 +706,13 @@ user data instead of individual user keys. This is especially useful to enable
 single-sign on. Use this only on fresh installations with no existing data, or
 on systems where encryption has not already been enabled. It is not possible to
 disable it.
+
+``encryption:drop-legacy-filekey`` scans the files for the legacy filekey
+format using RC4 and get rid of it (if master key is enabled). The operation can
+be quite slow as it needs to rewrite each encrypted file. If you do not do it files
+will be migrated to drop their legacy filekey on the first modification. If you have
+old files from Nextcloud<25 still using base64 encoding this will migrate them to the
+binary format and save about 33% disk space.
 
 See :doc:`../configuration_files/encryption_configuration` to learn more.
 
@@ -654,14 +744,17 @@ File operations
 ``occ`` has three commands for managing files in Nextcloud::
 
  files
-  files:cleanup              cleanup filecache
-  files:scan                 rescan filesystem
-  files:scan-app-data        rescan the AppData folder
+  files:cleanup              Cleanup filecache
+  files:repair-tree          Try and repair malformed filesystem tree structures
+  files:scan                 Rescan filesystem
+  files:scan-app-data        Rescan the AppData folder
   files:transfer-ownership   All files' and folders' ownerships are moved to another
                              user. Outgoing shares are moved as well.
                              Incoming shares are not moved by default because the
                              sharing user holds the ownership of the respective files.
                              There is however an option to enable moving incoming shares.
+
+.. _occ_files_scan_label:
 
 Scan
 ^^^^
@@ -672,20 +765,31 @@ search path. If not using ``--quiet``, statistics will be shown at the end of
 the scan::
 
  sudo -u www-data php occ files:scan --help
-   Usage:
-   files:scan [-p|--path="..."] [-q|--quiet] [-v|vv|vvv --verbose] [--all]
-   [user_id1] ... [user_idN]
+ Description:
+   rescan filesystem
+
+ Usage:
+   files:scan [options] [--] [<user_id>...]
 
  Arguments:
-   user_id               will rescan all files of the given user(s)
+   user_id                  will rescan all files of the given user(s)
 
  Options:
-   --path                limit rescan to the user/path given
-   --all                 will rescan all files of all known users
-   --quiet               suppress any output
-   --verbose             files and directories being processed are shown
-                         additionally during scanning
-   --unscanned           scan only previously unscanned files
+       --output[=OUTPUT]    Output format (plain, json or json_pretty, default is plain) [default: "plain"]
+   -p, --path=PATH          limit rescan to this path, eg. --path="/alice/files/Music", the user_id is determined by the path and the user_id parameter and --all are ignored
+       --generate-metadata  Generate metadata for all scanned files
+       --all                will rescan all files of all known users
+       --unscanned          only scan files which are marked as not fully scanned
+       --shallow            do not scan folders recursively
+       --home-only          only scan the home storage, ignoring any mounted external storage or share
+   -h, --help               Display help for the given command. When no command is given display help for the list command
+   -q, --quiet              Do not output any message
+   -V, --version            Display this application version
+       --ansi|--no-ansi     Force (or disable --no-ansi) ANSI output
+   -n, --no-interaction     Do not ask any interactive question
+       --no-warnings        Skip global warnings, show command output only
+   -v|vv|vvv, --verbose     Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
+
 
 Verbosity levels of ``-vv`` or ``-vvv`` are automatically reset to ``-v``
 
@@ -738,15 +842,55 @@ Cleanup
 ``files:cleanup`` tidies up the server's file cache by deleting all file
 entries that have no matching entries in the storage table.
 
+Repair-Tree
+^^^^^^^^^^^
+
+``files:repair-tree`` try and repair malformed filesystem tree structures.
+If for any reason the path of an entry in the filecache doesn't match with
+it's expected path, based on the path of it's parent node, you end up with an
+entry in the filecache that exists in different places based on how the entry
+is generated. For example, if while listing folder ``/foo`` it contains a file
+``bar.txt``, but when trying to do anything with ``/foo/bar.txt`` the file
+doesn't exists.
+
+This command attempts to repair such entries by querying for entries where the path
+doesn't match the expected path based on it's parent path and filename and resets it's
+path to the expected one.
+
 Transfer
 ^^^^^^^^
+
+The command ``occ files:transfer-ownership`` can be used to transfer files from one user to another::
+
+ Usage:
+   files:transfer-ownership [options] [--] <source-user> <destination-user>
+
+ Arguments:
+   source-user                                                owner of files which shall be moved
+   destination-user                                           user who will be the new owner of the files
+
+ Options:
+       --path=PATH                                            selectively provide the path to transfer. For example --path="folder_name" [default: ""]
+       --move                                                 move data from source user to root directory of destination user, which must be empty
+       --transfer-incoming-shares[=TRANSFER-INCOMING-SHARES]  transfer incoming user file shares to destination user. Usage: --transfer-incoming-shares=1 (value required) [default: "2"]
 
 You may transfer all files and shares from one user to another. This is useful
 before removing a user::
 
  sudo -u www-data php occ files:transfer-ownership <source-user> <destination-user>
 
-It is also possible to transfer only one directory along with it's contents. This can be useful to restructure your organization or quotas. The ``--path`` argument is given as the path to the directory as seen from the source user::
+The transferred files will appear inside a new sub-directory in the destination user's home.
+
+.. note::
+  Unless server side encryption is enabled, **the command will init the <destination-user> file system** in Nextcloud versions **22.2.6, 23.0.3 and since 24**. When it is unable to create the user's folder in the data directory it will show the following error: ``unable to rename, destination directory is not writable``. Before 22.2.6 the command ``occ files:transfer-ownership`` would only work after the user has logged in for the first time.
+
+If the destination user has no files at all (empty home), it is possible to also transfer all the source user's files by passing ``--move``::
+
+ sudo -u www-data php occ files:transfer-ownership --move <source-user> <destination-user>
+
+In this case no sub-directory is created and all files will appear directly in the root of the user's home.
+
+It is also possible to transfer only one directory along with its contents. This can be useful to restructure your organization or quotas. The ``--path`` argument is given as the path to the directory as seen from the source user::
 
  sudo -u www-data php occ files:transfer-ownership --path="path_to_dir" <source-user> <destination-user>
 
@@ -763,6 +907,8 @@ The command line option ``--transfer-incoming-shares`` overwrites the config.php
 Users may also transfer files or folders selectively by themselves.
 See `user documentation <https://docs.nextcloud.com/server/latest/user_manual/en/files/transfer_ownership.html>`_ for details.
 
+.. TODO ON RELEASE: Update version number above on release
+
 .. _occ_sharing_label:
 
 Files Sharing
@@ -773,6 +919,7 @@ Commands for handling shares::
  sharing
   sharing:cleanup-remote-storages  Cleanup shared storage entries that have no matching entry in the shares_external table
   sharing:expiration-notification  Notify share initiators when a share will expire the next day
+  sharing:delete-orphan-shares     Delete shares where the owner no longer has access to the file or the file is not available anymore
 
 .. _files_external_label:
 
@@ -860,6 +1007,7 @@ you can run the following LDAP commands with ``occ``::
 
  ldap
   ldap:check-user               checks whether a user exists on LDAP.
+  ldap:check-group              checks whether a group exists on LDAP.
   ldap:create-empty-config      creates an empty LDAP configuration
   ldap:delete-config            deletes an existing LDAP configuration
   ldap:search                   executes a user or group search
@@ -903,6 +1051,11 @@ is not in one of the disabled connections, and exists on an active connection,
 use the ``--force`` option to force it to check all active LDAP connections::
 
  sudo -u www-data php occ ldap:check-user --force robert
+
+``ldap:check-group`` checks whether a group still exists in the LDAP directory.
+Use with ``--update`` to update the group membership cache on the Nextcloud side::
+
+ sudo -u www-data php occ ldap:check-group --update mygroup
 
 ``ldap:create-empty-config`` creates an empty LDAP configuration. The first
 one you create has ``configID`` ``s01``, and all subsequent configurations
@@ -1012,21 +1165,25 @@ command after modifying ``config/mimetypemapping.json``. If you change a
 mimetype, run ``maintenance:mimetype:update-db --repair-filecache`` to apply the
 change to existing files.
 
-Run the ``maintenance:theme:update`` command if the icons of your custom theme are not updated correctly. This updates the mimetypelist.js and cleares the image cache.
+Run the ``maintenance:theme:update`` command if the icons of your custom theme are not
+updated correctly. This updates the mimetypelist.js and cleares the image cache.
 
 .. _security_commands_label:
 
 Security
 --------
 
-Use these commands to manage server-wide SSL certificates or reset brute-force slow-downs. These are useful when you create federation shares with other Nextcloud servers that use self-signed certificates::
+Use these commands to manage server-wide security related parameters. Currently this
+includes :doc:`bruteforce_configuration` and SSL certificates (the latter are useful when
+creating federation connections with other Nextcloud servers that use self-signed certificates::
 
  security
-  security:bruteforce:reset     resets brute-force attemps for given IP address
+  security:bruteforce:attempts  show bruteforce attempts status for a given IP address
+  security:bruteforce:reset     resets bruteforce attempts for a given IP address
   security:certificates         list trusted certificates
   security:certificates:import  import trusted certificate
   security:certificates:remove  remove trusted certificate
-  
+
 Reset an IP::
 
  sudo -u www-data php occ security:bruteforce:reset [IP address]
@@ -1044,10 +1201,80 @@ Remove a certificate::
 
  sudo -u www-data php occ security:certificates:remove [certificate name]
 
+Status
+------
+
+Use the status command to retrieve information about the current installation::
+
+ $ sudo -u www-data php occ status
+   - installed: true
+   - version: 25.0.2.3
+   - versionstring: 25.0.2
+   - edition:
+   - maintenance: false
+   - needsDbUpgrade: false
+   - productname: Nextcloud
+   - extendedSupport: false
+
+This information can also be formatted via JSON instead of plain text::
+
+ $ php occ status --output=json_pretty
+ {
+     "installed": true,
+     "version": "25.0.2.3",
+     "versionstring": "25.0.2",
+     "edition": "",
+     "maintenance": false,
+     "needsDbUpgrade": false,
+     "productname": "Nextcloud",
+     "extendedSupport": false
+ }
+
+Status return code
+^^^^^^^^^^^^^^^^^^
+
+And finally, the ``-e`` (for exit code) parameter can be used to check
+the state of the nextcloud installation via return code::
+
+ $ php occ status -e
+ $ echo $?
+ 0
+ $ php occ maintenance:mode --on
+ Maintenance mode enabled
+ $ php occ status -e
+ $ echo $?
+ 1
+ $ php occ maintenance:mode --off
+ Maintenance mode disabled
+ $ php occ status -e
+ $ echo $?
+ 0
+
+Note that by default there is no output when run with ``-e``. This is
+intentional, so it can be used in scripts, monitoring checks, and systemd
+units.
+
++-------------+--------------------------------------------------------+
+| Return code | Description                                            |
++=============+========================================================+
+| 0           | normal operation                                       |
++-------------+--------------------------------------------------------+
+| 1           | maintenance mode is enabled; the instance is currently |
+|             | unavailable to users.                                  |
++-------------+--------------------------------------------------------+
+| 2           | ``php occ upgrade`` is required                        |
++-------------+--------------------------------------------------------+
+
 .. _trashbin_label:
 
 Trashbin
 --------
+
+::
+
+ trashbin
+  trashbin:cleanup  [--all-users] [--] [<user_id>...]  Permanently remove deleted files
+  trashbin:restore  [--all-users] [--scope[=SCOPE]] [--since[=SINCE]] [--until[=UNTIL]] [--dry-run] [--] [<user_id>...]  Restore deleted files according to the given filters
 
 .. note::
   This command is only available when the "Deleted files" app
@@ -1056,12 +1283,7 @@ Trashbin
 The ``trashbin:cleanup  [--all-users] [--] [<user_id>...]`` command removes the deleted files of the specified
 users in a space-delimited list, or all users if --all-users is specified.
 
-::
-
- trashbin
-  trashbin:cleanup  [--all-users] [--] [<user_id>...]  Remove deleted files
-
-This example removes the deleted files of all users::
+This example permanently removes the deleted files of all users::
 
   sudo -u www-data php occ trashbin:cleanup --all-users
   Remove all deleted files for all users
@@ -1072,11 +1294,42 @@ This example removes the deleted files of all users::
    rosa
    edward
 
-This example removes the deleted files of users molly and freda::
+This example permanently removes the deleted files of users molly and freda::
 
  sudo -u www-data php occ trashbin:cleanup molly freda
  Remove deleted files of   molly
  Remove deleted files of   freda
+
+The ``trashbin:restore  [--all-users] [--scope[=SCOPE]] [--since[=SINCE]] [--until[=UNTIL]] [--dry-run] [--] [<user_id>...]`` command restores the deleted files of the specified
+users in a space-delimited list, or all users if --all-users is specified.
+
+This example restores the deleted user-files of all users::
+
+ sudo -u www-data php occ trashbin:restore --all-users
+
+This example restores the deleted user-files of users molly and freda::
+
+ sudo -u www-data php occ trashbin:restore molly freda
+
+The ``--scope`` option can be used to limit the restore to a specific scope.
+Possible values are "user", "groupfolders" or "all" [default: "user"].
+
+This example restores the deleted files of all groupfolders which are visible to the user freda::
+
+  sudo -u www-data php occ trashbin:restore --scope groupfolders freda
+
+The ``--since`` and ``--until`` options can be used to limit the restore to files deleted inside of the given time period.
+
+This example restores the locally deleted files and files of any groupfolders which are visible to the user
+freda. Additionally the files have to be deleted between ``01.08.2023 11:55:22`` and ``02.08.2023 01:33``::
+
+  sudo -u www-data php occ trashbin:restore --scope all --since "01.08.2023 11:55:22" --until "02.08.2023 01:33" freda
+
+The ``--dry-run`` option can be used to simulate the restore without actually restoring the files.
+
+.. note::
+  You can use the verbose options (``-v`` or ``-vv``) to get more information about
+  the restore process and why some files might be skipped.
 
 .. _user_commands_label:
 
@@ -1098,6 +1351,8 @@ report showing how many users you have, and when a user was last logged in::
   user:report                         shows how many users have access
   user:resetpassword                  Resets the password of the named user
   user:setting                        Read and modify user settings
+  user:keys:verify                    Verify that the stored public key matches
+                                      the stored private key
 
 
 You can create a new user with their display name, login name, and any group
@@ -1205,7 +1460,16 @@ authentication servers such as LDAP::
  | total users      | 98 |
  |                  |    |
  | user directories | 2  |
+ | active users     | 15 |
+ | disabled users   | 0  |
  +------------------+----+
+
+`active users` shows the number of users which logged in at least once.
+`disabled users` shows the number of users which are disabled.
+
+There might be a discrepancy between the total number of users compared to the number of active users and the number of disabled users.
+Users that have never logged in before are not counted as active or disabled users.
+Some user backends also do not allow a count for the number of users.
 
 .. _group_commands_label:
 
@@ -1279,6 +1543,7 @@ when none are specified::
 
  versions
   versions:cleanup   Delete versions
+  versions:expire    Expires the users file versions
 
 This example deletes all versions for all users::
 
@@ -1467,13 +1732,13 @@ In the case of a user losing access to the second factor (e.g. lost phone with
 two-factor SMS verification), the admin can try to disable the two-factor
 check for that user via the occ command::
 
- sudo -u www-data php occ twofactor:disable <uid> <provider_id>
+ sudo -u www-data php occ twofactorauth:disable <uid> <provider_id>
 
 .. note:: This is not supported by all providers.
 
 To re-enable two-factor auth again use the following commmand::
 
- sudo -u www-data php occ twofactor:enable <uid> <provider_id>
+ sudo -u www-data php occ twofactorauth:enable <uid> <provider_id>
 
 .. note:: This is not supported by all providers.
 
@@ -1490,6 +1755,64 @@ Use the following command to enable the user again::
  sudo -u www-data php occ user:enable <username>
 
 Note that once users are disabled, their connected browsers will be disconnected.
+
+
+.. _system_tags_commands_label:
+
+System Tags
+-----------
+
+List tags::
+
+  sudo -u www-data php occ tag:list
+
+Add a tag::
+
+  sudo -u www-data php occ tag:add <name> <access>
+
+Edit a tag::
+
+  sudo -u www-data php occ tag:edit --name <name> --access <access> <id>
+
+`--name` and `--access` are optional.
+
+Delete a tag::
+
+  sudo -u www-data php occ tag:delete <id>
+
+Access level
+
+========== ======== ==========
+Level      Visible¹ Assignable²
+========== ======== ==========
+public     Yes      Yes
+restricted Yes      No
+invisible  No       No
+========== ======== ==========
+
+| ¹ User can see the tag
+| ² User can assign the tag to a file
+
+.. _antivirus_commands_label:
+
+Antivirus
+---------
+
+Get info about files in the scan queue::
+
+  sudo -u www php occ files_antivirus:status [-v]
+
+Manually trigger the background scan::
+
+  sudo -u www php occ files_antivirus:background-scan [-v] [-m MAX]
+
+Manually scan a single file::
+
+  sudo -u www php occ files_antivirus:scan <path>
+
+Mark a file as scanned or unscanned::
+
+  sudo -u www php occ files_antivirus:mark <path> <scanned|unscanned>
 
 .. _occ_debugging:
 

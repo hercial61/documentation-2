@@ -121,31 +121,19 @@ The `MyAppWidget` class needs to be registered during the :ref:`app bootstrap<Bo
         }
     }
 
-For compatibility reasons the widget registration can also be performed by
-listening to the `OCP\\Dashboard\\RegisterWidgetEvent` for apps that still
-need to support older versions where the new app boostrap flow is not available,
-however this method is deprecated and will be removed once Nextcloud 19 is EOL.
+The IConditionalWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The IConditionalWidget interface adds the **isEnabled** method to provide the option for a widget to opt-out later.
+While registering the widget the information whether or not a widget should be displayed to the specific user might
+not be available or to complex to calculate up front. In this case the IConditionalWidget allows you to check the
+conditions only when really needed.
 
 .. code-block:: php
 
-    <?php
-
-    use OCP\Dashboard\RegisterWidgetEvent;
-    use OCP\EventDispatcher\IEventDispatcher;
-
-    class Application extends App {
-        public function __construct(array $urlParams = []) {
-            parent::__construct(self::APP_ID, $urlParams);
-            $container = $this->getContainer();
-
-            /** @var IEventDispatcher $dispatcher */
-            $dispatcher = $container->getServer()->get(IEventDispatcher::class);
-            $dispatcher->addListener(RegisterWidgetEvent::class, function (RegisterWidgetEvent $event) use ($container): void {
-                    \OCP\Util::addScript('myapp', 'dashboard');
-                    $event->registerWidget(MyAppWidget::class);
-            });
-        }
-    }
+	public function isEnabled(): bool {
+		return false;
+	}
 
 
 Provide a user interface
@@ -177,12 +165,100 @@ as plain JavaScript:
     })
 
 
-Dashboard API for clients
----------------------------------------
+Dashboard API
+-------------
 
-+++++++++++++++++
-Implement the API
-+++++++++++++++++
+Render dashboard widgets using the API
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 27.1
+
+Dashboard widgets can be rendered in the browser using the dashboard API. This allows to render
+widgets without any JavaScript and frontend code. This new method is beneficial for performance as
+the widgets are rendered from API data using a generic vue.js component provided by the Dashboard
+app.
+
+To render a widget using the new API, you need to implement the
+:ref:`OCP\\Dashboard\\IAPIWidgetV2<IAPIWidgetV2>` interface. Optionally, you may implement the
+:ref:`OCP\\Dashboard\\IReloadableWidget<IReloadableWidget>` interface to have the widget reload
+periodically.
+
+Providing widgets to clients
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To provide more information about your widget through the dashboard API for clients, you can implement
+those additional interfaces:
+
+* IButtonWidget to add buttons to be rendered by the client in the widget
+* IIconWidget to set the widget icon URL
+* IOptionWidget to set additional options
+* IAPIWidget to actually provide the widget content (the item list)
+
+The IButtonWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+The IButtonWidget interface adds the **getWidgetButtons** method to provide a list of buttons
+to be displayed by the clients in the widget.
+Those buttons let you define actions that can be triggered from the widget in the clients.
+
+There are 3 types of buttons:
+
+* WidgetButton::TYPE_NEW To let users create new elements in your app
+* WidgetButton::TYPE_MORE To let users see more information
+* WidgetButton::TYPE_SETUP If the widget requires some configuration
+
+.. code-block:: php
+
+	public function getWidgetButtons(string $userId): array {
+		return [
+			new WidgetButton(
+				WidgetButton::TYPE_NEW,
+				'https://somewhere.org',
+				$this->l10n->t('Create new element')
+			),
+			new WidgetButton(
+				WidgetButton::TYPE_MORE,
+				'https://my.nextcloud.org/apps/your-app/',
+				$this->l10n->t('More notifications')
+			),
+			new WidgetButton(
+				WidgetButton::TYPE_SETUP,
+				'https://my.nextcloud.org/apps/settings/user',
+				$this->l10n->t('Configure')
+			),
+		];
+	}
+
+The IIconWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The IIconWidget interface adds the **getIconUrl** method to provide the URL to the widget icon. In the following example
+it returns the URL to the img/app.svg file in your app.
+
+.. code-block:: php
+
+	public function getIconUrl(): string {
+		return $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->imagePath(Application::APP_ID, 'app.svg')
+		);
+	}
+
+The IOptionWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The IOptionWidget interface adds the **getWidgetOptions** method to provide additional widget options. It returns
+a WidgetOptions object which only contains the **roundItemIcons** boolean value for now. This tells the clients if
+the widget item icons should be rounded or kept as squares.
+
+.. code-block:: php
+
+	public function getWidgetOptions(): WidgetOptions {
+		return new WidgetOptions(true);
+	}
+
+The IAPIWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you want your widget content to be accessible with the dashboard API for Nextcloud clients,
 it must implement the `OCP\\Dashboard\\IAPIWidget` interface rather than `OCP\\Dashboard\\IWidget`.
@@ -197,6 +273,8 @@ This interface contains an extra `getItems` method which returns an array of `OC
         return $this->myService->getWidgetItems($userId, $since, $limit);
     }
 
+
+.. _WidgetItem:
 
 `OCP\\Dashboard\Model\\WidgetItem` contains the item information. Its constructor is:
 
@@ -215,11 +293,228 @@ This interface contains an extra `getItems` method which returns an array of `OC
 * iconUrl: URL to a square icon (svg or jpg/png of at least 44x44px)
 * sinceId: Item ID or timestamp. The client will then send the latest known sinceId in next dashboard API request.
 
-+++++++++++
-Use the API
-+++++++++++
+.. versionadded:: 27.1
 
-From the client point of view, the dashboard widget items can then be obtained with this kind of request:
+* overlayIconUrl: Small overlay icon to show in the bottom right corner of `iconUrl`. This is used
+  by the activity widget to show the activity type icon.
+
+.. _IAPIWidgetV2:
+
+The IAPIWidgetV2 interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to render a widget in the browser using this API you must implement the
+`OCP\\Dashboard\\IAPIWidgetV2` interface. The widget registration does not change compared to the
+old method. The type of a widget will be detected automatically during the registration. When
+migrating old, JavaScript based widgets the **load** method should be left empty.
+
+This interface adds a single method **getItemsV2** which returns
+`OCP\\Dashboard\\Model\\WidgetItems`.
+
+.. code-block:: php
+
+    /**
+     * @inheritDoc
+     */
+    public function getItemsV2(string $userId, ?string $since = null, int $limit = 7): WidgetItems {
+        return $this->myService->getWidgetItemsV2($userId, $since, $limit);
+    }
+
+`OCP\\Dashboard\Model\\WidgetItems` contains the all items and additional meta information to
+render the widget. Its constructor is:
+
+.. code-block:: php
+
+    public function __construct(
+        private array $items = [],
+        private string $emptyContentMessage = '',
+        private string $halfEmptyContentMessage = '',
+    )
+
+* items: An array of :ref:`OCP\\Dashboard\Model\\WidgetItem<WidgetItem>`.
+* emptyContentMessage: The message to show if no items are available.
+* halfEmptyContentMessage: An optional message to show above the item list. This is useful if there
+  are no important items but you still want to show some items to the user. Have a look at the
+  following example from the Talk app:
+
+.. figure:: ../images/talk-widget-half-empty-content.png
+   :width: 40%
+
+Here is a full example of a widget that implements the `OCP\\Dashboard\\IAPIWidgetV2` interface:
+
+.. code-block:: php
+
+    <?php
+
+    class MyWidget implements IButtonWidget, IIconWidget, IReloadableWidget {
+        public function __construct(
+            private IL10N $l10n,
+            private IURLGenerator $urlGenerator,
+        ) {
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getId(): string {
+            return 'blazinglyfast';
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getTitle(): string {
+            return $this->l10n->t('My blazingly fast widget');
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getOrder(): int {
+            return 0;
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getIconClass(): string {
+            return 'icon-class';
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getIconUrl(): string {
+            return $this->urlGenerator->getAbsoluteURL(
+                $this->urlGenerator->imagePath('blazinglyfast', 'icon.svg')
+            );
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getUrl(): ?string {
+            return $this->urlGenerator->linkToRouteAbsolute('blazinglyfast.view.index');
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function load(): void {
+            // No need to provide initial state or inject javascript code anymore
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getItemsV2(string $userId, ?string $since = null, int $limit = 7): WidgetItems {
+            // TODO
+            $items = [/* fancy items */];
+            return new WidgetItems(
+                $items,
+                empty($items) ? $this->l10n->t('No items') : '',
+            );
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getWidgetButtons(string $userId): array {
+            return [
+                new WidgetButton(
+                    WidgetButton::TYPE_MORE,
+                    $this->urlGenerator->linkToRouteAbsolute('blazinglyfast.view.index'),
+                    $this->l10n->t('More items'),
+                ),
+            ];
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function getReloadInterval(): int {
+            return 60;
+        }
+    }
+
+.. _IReloadableWidget:
+
+The IReloadableWidget interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The IReloadableWidget interface adds the **getReloadInterval** method to provide a periodic reload
+interval in seconds. New items will be requested from the OCS API after this interval to refresh
+the widget. Internally, the **getItemsV2** method will be called to get the new items.
+
+.. code-block:: php
+
+    public function getReloadInterval(): int {
+        // Reload data every minute
+        return 60;
+    }
+
+.. note:: This interface requires a widget to implement the `OCP\\Dashboard\\IAPIWidgetV2` interface and won't work with old widgets.
+
+Use the API
+^^^^^^^^^^^
+
+The list of enabled widgets can be requested like that:
+
+.. code-block:: bash
+
+    curl -u user:passwd https://my.nextcloud.org/ocs/v2.php/apps/dashboard/api/v1/widgets \
+        -H "Accept: application/json" \
+        -X GET
+
+Example response:
+
+.. code-block:: json
+
+    {
+      "ocs": {
+        "meta": {
+          "status": "ok",
+          "statuscode": 200,
+          "message": "OK"
+        },
+        "data": {
+          "spreed": {
+            "id": "spreed",
+            "title": "Talk mentions",
+            "order": 10,
+            "icon_class": "dashboard-talk-icon",
+            "icon_url": "https://my.nextcloud.org/apps/spreed/img/app-dark.svg",
+            "widget_url": "https://my.nextcloud.org/index.php/apps/spreed/",
+            "item_icons_round": true,
+            "buttons": [
+              {
+                "type": "more",
+                "text": "More unread mentions",
+                "link": "https://my.nextcloud.org/index.php/apps/spreed/"
+              }
+            ]
+          },
+          "github_notifications": {
+            "id": "github_notifications",
+            "title": "GitHub notifications",
+            "order": 10,
+            "icon_class": "icon-github",
+            "icon_url": "https://my.nextcloud.org/apps/integration_github/img/app-dark.svg",
+            "widget_url": "https://my.nextcloud.org/index.php/settings/user/connected-accounts",
+            "item_icons_round": true,
+            "buttons": [
+              {
+                "type": "more",
+                "text": "More notifications",
+                "link": "https://github.com/notifications"
+              }
+            ]
+          },
+        }
+      }
+    }
+
+The items list for each enabled widgets can be requested like that:
 
 .. code-block:: bash
 
@@ -230,3 +525,58 @@ From the client point of view, the dashboard widget items can then be obtained w
 
 If your client periodically gets widget items content with this API,
 include the latest `sinceId` for each widget to avoid getting the items you already have.
+
+Example response:
+
+.. code-block:: json
+
+    {
+      "ocs": {
+        "meta": {
+          "status": "ok",
+          "statuscode": 200,
+          "message": "OK"
+        },
+        "data": {
+          "github_notifications": [
+            {
+              "subtitle": "nextcloud-docker-dev#87",
+              "title": "Improve getting started",
+              "link": "https://github.com/juliushaertl/nextcloud-docker-dev/pull/87",
+              "iconUrl": "https://my.nextcloud.org/index.php/apps/integration_github/avatar/juliushaertl",
+              "sinceId": "2022-10-13T12:34:19Z"
+            },
+            {
+              "subtitle": "integration_github",
+              "title": "v1.0.11",
+              "link": "https://github.com/nextcloud/integration_github/releases",
+              "iconUrl": "https://my.nextcloud.org/index.php/apps/integration_github/avatar/nextcloud",
+              "sinceId": "2022-10-13T12:32:04Z"
+            },
+            {
+              "subtitle": "text#3209",
+              "title": "Rich workspaces: If there is no Readme.md, don’t show editor placeholder but move into \"+\" menu",
+              "link": "https://github.com/nextcloud/text/issues/3209",
+              "iconUrl": "https://my.nextcloud.org/index.php/apps/integration_github/avatar/nextcloud",
+              "sinceId": "2022-10-13T12:14:39Z"
+            }
+          ],
+          "spreed": [
+            {
+              "subtitle": "- Send chat messages without notifying the recipients in case it is not urgent",
+              "title": "Talk updates ✅",
+              "link": "https://my.nextcloud.org/index.php/call/hw39yxkp",
+              "iconUrl": "https://my.nextcloud.org/core/img/actions/group.svg",
+              "sinceId": ""
+            },
+            {
+              "subtitle": "@roberto What's up?",
+              "title": "Jane",
+              "link": "https://my.nextcloud.org/index.php/call/z87agy2o",
+              "iconUrl": "https://my.nextcloud.org/index.php/avatar/toto/64",
+              "sinceId": ""
+            }
+          ]
+        }
+      }
+    }

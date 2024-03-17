@@ -10,11 +10,15 @@ Nextcloud requires a database in which administrative data is stored. The follow
 
 The MySQL or MariaDB databases are the recommended database engines.
 
+.. tip:: Not all versions of every supported database are recommended. Please review the Nextcloud :doc:`System Requirements <../installation/system_requirements>`
+   before settling on a particular version.
+
 Requirements
 ------------
 
-Choosing to use MySQL / MariaDB, PostgreSQL, or Oracle as your database
-requires that you install and set up the server software first.
+* Decide whether you wish to use MySQL / MariaDB, PostgreSQL, or Oracle as your database
+* Pick a recommendeded version of your database by checking the Nextcloud :doc:`System Requirements <../installation/system_requirements>`
+* Install and set up the chosen database server software (and preferrred version) before deploying Nextcloud Server
 
 .. note:: The steps for configuring a third party database are beyond the
   scope of this document.  Please refer to the documentation for your specific
@@ -35,6 +39,8 @@ for detailed information.
 Parameters
 ----------
 For setting up Nextcloud to use any database, use the instructions in :doc:`../installation/installation_wizard`. You should not have to edit the respective values in the :file:`config/config.php`.  However, in special cases (for example, if you want to connect your Nextcloud instance to a database created by a previous installation of Nextcloud), some modification might be required.
+
+.. _db-config-mysql-label:
 
 Configuring a MySQL or MariaDB database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -127,6 +133,10 @@ To start the MySQL command line mode use::
 
   mysql -uroot -p
 
+When using MariaDB use::
+
+  mariadb -uroot -p
+
 Then a **mysql>** or **MariaDB [root]>** prompt will appear. Now enter the following lines and confirm them with the enter key:
 
 ::
@@ -134,7 +144,6 @@ Then a **mysql>** or **MariaDB [root]>** prompt will appear. Now enter the follo
   CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
   CREATE DATABASE IF NOT EXISTS nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
   GRANT ALL PRIVILEGES on nextcloud.* to 'username'@'localhost';
-  FLUSH privileges;
 
 You can quit the prompt by entering::
 
@@ -179,8 +188,15 @@ This just covers the SSL database configuration on the Nextcloud server. First y
 
 Adjust the paths to the pem files for your environment.
 
+.. _db-config-postgresql-label:
+
 PostgreSQL database
 ^^^^^^^^^^^^^^^^^^^
+
+In order to run Nextcloud securely on PostgreSQL, it is assumed that only 
+Nextcloud uses this database and thus only one user accesses the database.
+For further services and users, we recommend to create a separate
+database or PostgreSQL instance.
 
 If you decide to use a PostgreSQL database make sure that you have installed
 and enabled the PostgreSQL extension in PHP. The PHP configuration in :file:`/etc/php7/conf.d/pgsql.ini` could look
@@ -210,7 +226,8 @@ Then a **template1=#** prompt will appear. Now enter the following lines and con
 ::
 
   CREATE USER username CREATEDB;
-  CREATE DATABASE nextcloud OWNER username;
+  CREATE DATABASE nextcloud OWNER username TEMPLATE template0 ENCODING 'UTF8';
+  GRANT CREATE ON SCHEMA public TO username;
 
 You can quit the prompt by entering::
 
@@ -248,10 +265,11 @@ Then a **postgres=#** prompt will appear. Now enter the following lines and conf
 
 ::
 
-  CREATE USER username WITH PASSWORD 'password';
-  CREATE DATABASE nextcloud TEMPLATE template0 ENCODING 'UNICODE';
+  CREATE USER username WITH PASSWORD 'password' CREATEDB;
+  CREATE DATABASE nextcloud TEMPLATE template0 ENCODING 'UTF8';
   ALTER DATABASE nextcloud OWNER TO username;
   GRANT ALL PRIVILEGES ON DATABASE nextcloud TO username;
+  GRANT ALL PRIVILEGES ON SCHEMA public TO username;
 
 You can quit the prompt by entering::
 

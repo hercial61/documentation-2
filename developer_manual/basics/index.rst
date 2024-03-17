@@ -13,7 +13,9 @@ Basic concepts
    events
    front-end/index
    backgroundjobs
+   caching
    logging
    setting
    storage/index
+   public_share_template
    testing

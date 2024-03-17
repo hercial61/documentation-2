@@ -6,14 +6,15 @@ All Nextcloud apps are built using individual reusable components for consistenc
 Navigation
 ----------
 
+`Vue component for the app navigation <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppNavigation?id=ncappnavigation-1>`_.
+
+`Penpot navigation items <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=8&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/contacts-navigation.png
    :alt: Contacts navigation
 
 
-The left navigation provides a way for users to move around different sections of your app. 
-
-`Vue component for the app navigation <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/AppNavigation?id=appnavigation-1>`_. 
+The left navigation provides a way for users to move around different sections of your app.
 
 The navigation consists of 4 main elements:
 
@@ -25,6 +26,10 @@ The navigation consists of 4 main elements:
 
 Main action button
 ^^^^^^^^^^^^^^^^^^
+
+`Navigation AppNew Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppNavigation?id=ncappnavigationnew>`_.
+
+`Penpot buttons <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=0&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/mail-primary-action-button.png
    :alt: Mail primary action button.png
@@ -41,6 +46,10 @@ For most apps, the first element in the navigation is the main action button. Fo
 
 Navigation entries
 ^^^^^^^^^^^^^^^^^^
+
+`Navigation entries Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppNavigation?id=ncappnavigationitem>`_.
+
+`Penpot navigation items <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=8&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/mail-navigation-entries.png
    :alt: Mail navigation entries
@@ -60,12 +69,12 @@ Top-level navigation entries ideally have a suitable icon left next to them. Opt
 * a 3 dot action menu (seen in Mail)
 * a counter (seen in Contacts and Mail)
 
-A sublevel of navigation is possible, but can lead to entries being hard to discover. It is only advised if there is actually a hierarchy like for folders in Mail or News. 
-
-`Navigation entries Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/AppNavigation?id=appnavigationitem>`_.
+A sublevel of navigation is possible, but can lead to entries being hard to discover. It is only advised if there is actually a hierarchy like for folders in Mail or News.
 
 New item element
 ^^^^^^^^^^^^^^^^
+
+`New item Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppNavigation?id=ncappnavigationnewitem>`_.
 
 .. image:: ../images/new-item-element.gif
    :alt: Add new item element
@@ -78,12 +87,14 @@ Users can easily create a new item with a suitable name by using the new item el
 * "Add mailbox" in Mail
 * "New calendar" in Calendar
 
-`New item Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/AppNavigation?id=appnavigationnewitem>`_.
-
 .. _Settings:
 
 Settings
 ^^^^^^^^
+
+`Settings Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppNavigation?id=ncappnavigationsettings>`_.
+
+`Penpot modals <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=12&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/talk-settings-modal.png
    :alt: Talk settings modal
@@ -91,17 +102,19 @@ Settings
 
 The user-specific settings for your app may be shown in a settings modal, which can be accessed through a settings entry at the bottom of the navigation. Try to keep the settings to a minimum, as too many configurable options can be a burden to the user. If no settings are needed for the app, that is great and the settings modal can be omitted. Within the modal, categorizing your settings can sometimes offer a better experience if you have a lot of settings. If this is required, the categories are placed in the left of the settings modal.
 
-You can also include a "Help" as an entry in the settings of your app and provide some simple information about your app and how to use it. Some apps like Talk and Mail also include keyboard shortcuts. 
+You can also include a "Help" as an entry in the settings of your app and provide some simple information about your app and how to use it. Some apps like Talk and Mail also include keyboard shortcuts, if they are not disabled by the user.
+The global javascript function ``OCP.Accessibility.disableKeyboardShortcuts()`` can be used to check that.
 
-`Settings Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/AppNavigation?id=appnavigationsettings>`_.
-
-Also see: :ref:`Modal` 
+Also see: :ref:`Modal`
 
 .. _List:
 
 List item
 ----------
 
+`List item Vue component <https://nextcloud-vue-components.netlify.app/#/Components/NcListItems>`_.
+
+`Penpot list item <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=9&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/list-item.gif
    :alt: Talk list
@@ -112,8 +125,6 @@ List items can be used to display a collection of elements from which one can be
 
 * an :ref:`Action menu` which has commonly used actions for that type of item
 * a counter bubble: Talk for example uses an unread messages counter
-
-`List item Vue component <https://nextcloud-vue-components.netlify.app/#/Components/List%20items>`_.
 
 .. _Content:
 
@@ -148,15 +159,21 @@ Spacing between elements in your app should be in multiples of 4px.
 Sidebar
 -------
 
-Details of a particular entry in your content, as well as some actions associated with it, are shown in the right sidebar. In apps where the sidebar is used, it only opens when required. The sidebar is never used in the 3-column layout (Navigation + list + content). It contains the main information and sometimes a preview of the selected item, as well as a maximum of 3 possible tabs. 
+`Sidebar Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppSidebar?id=ncappsidebar-1>`_.
 
-`Sidebar Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers?id=appsidebar>`_.
+`Penpot sidebar <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=11&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
+
+Details of a particular entry in your content, as well as some actions associated with it, are shown in the right sidebar. In apps where the sidebar is used, it only opens when required. The sidebar is never used in the 3-column layout (Navigation + list + content). It contains the main information and sometimes a preview of the selected item, as well as a maximum of 3 possible tabs.
 
 Commonly used tabs in the sidebar are:
 
 
 Details
 ^^^^^^^
+
+`Sidebar Tabs Vue component <https://nextcloud-vue-components.netlify.app/#/Components/App%20containers/NcAppSidebar?id=ncappsidebartabs>`_.
+
+`Penpot sidebar <https://design.penpot.app/#/view/db3839da-807b-8052-8002-576401e9a375?page-id=3f784c86-6c27-80c6-8002-6ab157b6bd27&section=interactions&index=11&share-id=11fde340-21f4-802e-8002-8d8d305e7ab5>`_
 
 .. image:: ../images/sidebar-details.png
    :alt: Details tab in Calendar sidebar

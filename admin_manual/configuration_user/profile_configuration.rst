@@ -1,3 +1,5 @@
+.. _profile:
+
 =====================
 Profile configuration
 =====================
@@ -8,6 +10,8 @@ Personal info settings under the Personal settings section.
 
 As an administrator you may change the default for new users and may also
 disable profile globally to remove all profile functionality.
+
+Profile properties are also written into the :ref:`system address book<system-address-book>`.
 
 To enable or disable profile by default for new users switch the toggle in
 Basic settings under the Administration settings section.
@@ -34,6 +38,8 @@ To disable profile globally add the following line to your ``config.php``
 
 Please refer to :doc:`../configuration_server/config_sample_php_parameters` for
 all available ``config.php`` options.
+
+.. _profile-property-scopes:
 
 Property scopes
 ---------------
@@ -84,8 +90,8 @@ If you'd like to override the value for one or several default visibility scopes
 .. code-block:: php
 
   'account_manager.default_property_scope' => [
-    \OCP\Accounts\IAccountManager::PROPERTY_PHONE => \OCP\Accounts\IAccountManager::SCOPE_PRIVATE
+    \OCP\Accounts\IAccountManager::PROPERTY_PHONE => \OCP\Accounts\IAccountManager::SCOPE_PRIVATE,
     \OCP\Accounts\IAccountManager::PROPERTY_ROLE => \OCP\Accounts\IAccountManager::SCOPE_FEDERATED
   ]
 
-In the above example, the phone and role properties are respectively overritten to the private and federated scopes. Note that these changes will only apply to *new* users, not existing ones.
+In the above example, the phone and role properties are respectively overwritten to the private and federated scopes. Note that these changes will only apply to *new* users, not existing ones.

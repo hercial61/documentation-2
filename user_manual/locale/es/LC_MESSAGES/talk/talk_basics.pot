@@ -1,26 +1,27 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) 2021 Nextcloud GmbH
+# Copyright (C) 2023 Nextcloud GmbH
 # This file is distributed under the same license as the Nextcloud latest User Manual package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
 # Roboron <robertoms258@gmail.com>, 2021
-# Next Cloud <nextcloud.translator.es@cgj.es>, 2021
+# FranciscoFJ <dev-ooo@satel-sa.com>, 2022
+# Julio C. Ortega, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud latest User Manual latest\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-26 12:22+0000\n"
+"POT-Creation-Date: 2023-05-03 15:53+0000\n"
 "PO-Revision-Date: 2021-10-11 16:50+0000\n"
-"Last-Translator: Next Cloud <nextcloud.translator.es@cgj.es>, 2021\n"
-"Language-Team: Spanish (https://www.transifex.com/nextcloud/teams/64236/es/)\n"
+"Last-Translator: Julio C. Ortega, 2023\n"
+"Language-Team: Spanish (https://app.transifex.com/nextcloud/teams/64236/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #: ../../talk/talk_basics.rst:3
 msgid "Basics of Nextcloud Talk"
@@ -204,38 +205,46 @@ msgstr "Gestionar una conversación"
 #: ../../talk/talk_basics.rst:80
 msgid ""
 "You are always moderator in your new conversation. In the participant list "
-"on the right you can elevate other participants to moderators using the "
-"``...`` menu to the right of their user name, or remove them from the "
-"conversation."
+"you can promote other participants to moderators using the ``...`` menu to "
+"the right of their user name, assign them custom permissions or remove them "
+"from the conversation."
 msgstr ""
 "Siempre eres moderador en tu nueva conversación. En la lista de "
 "participantes a la derecha, puede elevar a otros participantes a moderadores"
 " usando el menú ``...`` a la derecha de su nombre de usuario, o eliminarlos "
 "de la conversación."
 
-#: ../../talk/talk_basics.rst:84
+#: ../../talk/talk_basics.rst:82
 msgid ""
-"Moderators can configure the conversation. Select ``Configuration settings``"
-" from the ``...`` menu of the conversation on the top to access the "
-"settings."
+"Changing permissions of a user that joined a public conversation will also "
+"permanently add them to the conversation."
 msgstr ""
-"Los moderadores pueden configurar la conversación. Selecciona `` Ajustes de "
-"configuración'' en el menú ``...`` de la conversación en la parte superior "
-"para acceder a los ajustes."
+"Cambiar los permisos de un usuario que se unió a una conversación pública "
+"causará que este se una de forma permanente a la conversación."
 
-#: ../../talk/talk_basics.rst:88
+#: ../../talk/talk_basics.rst:86
 msgid ""
-"Here you can configure the name, guest access, if the conversation is "
-"visible to others on the server and more."
+"Moderators can configure the conversation. Select ``Conversation settings`` "
+"from the gear menu of the conversation on the top to access the settings."
+msgstr ""
+"Los moderadores puede configurar la conversación. Seleccione "
+"``Configuraciones de la conversación` desde el menú con el engranaje en la "
+"conversación que se encuentra en la parte superior para acceder a las "
+"configuraciones."
+
+#: ../../talk/talk_basics.rst:90
+msgid ""
+"Here you can configure the description, guest access, if the conversation is"
+" visible to others on the server and more."
 msgstr ""
 "Aquí puede configurar el nombre, el acceso de invitados, si la conversación "
 "es visible para otros en el servidor y más."
 
-#: ../../talk/talk_basics.rst:93
+#: ../../talk/talk_basics.rst:95
 msgid "Starting a call"
 msgstr "Iniciar una llamada"
 
-#: ../../talk/talk_basics.rst:95
+#: ../../talk/talk_basics.rst:97
 msgid ""
 "When you're in a conversation, you can start a call any time with the "
 "``Start call`` button. Other participants will get notified and can join the"
@@ -248,25 +257,25 @@ msgstr ""
 "iniciado una llamada, el botón cambiará a un botón verde de ``Unirse a la "
 "llamada``."
 
-#: ../../talk/talk_basics.rst:99
+#: ../../talk/talk_basics.rst:101
 msgid ""
 "During a call, you can mute your microphone and disable your video with the "
-"buttons on your video on the bottom-right, or using the shortcuts ``M`` to "
+"buttons on the right side of the top bar, or using the shortcuts ``M`` to "
 "mute audio and ``V`` to disable video. You can also use the space bar to "
 "toggle mute. When you are muted, pressing space will unmute you so you can "
 "speak until you let go of the space bar. If you are unmuted, pressing space "
 "will mute you until you let go."
 msgstr ""
-"Durante una llamada, puedes silenciar su micrófono y deshabilitar tu video "
-"con los botones del video en la parte inferior derecha, o usando los accesos"
-" directos ``M`` para silenciar el audio y ``V`` para deshabilitar el video. "
-"También puede usar la barra espaciadora para alternar el silencio. Cuando "
-"esté silenciado, al presionar la barra espaciadora se reactivará el silencio"
-" para que pueda hablar hasta que suelte la barra espaciadora. Si no está "
-"silenciado, al presionar la barra espaciadora se silenciará hasta que lo "
-"suelte."
+"Durante una llamada, puedes silenciar tu micrófono y deshabilitar tu video "
+"con los botones de tu video en la parte inferior derecha, o usando los "
+"accesos directos ``M`` para silenciar el audio y ``V`` para deshabilitar el "
+"video. También puedes usar la barra espaciadora para alternar el silencio. "
+"Cuando estéssilenciado, al presionar la barra espaciadora se reactivará el "
+"silencio para que puedas hablar hasta que suelte la barra espaciadora. Si no"
+" estás silenciado, al presionar la barra espaciadora se silenciará hasta que"
+" lo suelte."
 
-#: ../../talk/talk_basics.rst:101
+#: ../../talk/talk_basics.rst:103
 msgid ""
 "You can hide your video (useful during a screen share) with the little arrow"
 " just above the video stream. Bring it back with the little arrow again."
@@ -275,13 +284,13 @@ msgstr ""
 "pequeña flecha justo encima de la transmisión de video. Puedes volver a "
 "mostrarlo con la pequeña flecha de nuevo."
 
-#: ../../talk/talk_basics.rst:103
+#: ../../talk/talk_basics.rst:105
 msgid ""
 "You can access your settings and choose a different webcam, microphone and "
-"other settings in the ``...`` menu  on your video."
+"other settings in the ``...`` menu in the top bar."
 msgstr ""
-"Puedes acceder a tu configuración y elegir una cámara web, un micrófono y "
-"otras configuraciones diferentes en el menú ``...`` del video."
+"Puede acceder a su configuración y elegir una cámara web, micrófono y otras "
+"configuraciones diferentes en el menú ``...`` en la barra superior."
 
 #: ../../talk/talk_basics.rst:112
 msgid "Starting a screen share"

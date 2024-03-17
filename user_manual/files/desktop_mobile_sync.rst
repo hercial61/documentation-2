@@ -16,7 +16,7 @@ have your latest files with you wherever you are.
 
 Its usage is documented separately in the `Nextcloud Desktop Client Manual`_.
 
-.. _`Nextcloud Desktop Client Manual`: https://docs.nextcloud.com/desktop/2.6
+.. _`Nextcloud Desktop Client Manual`: https://docs.nextcloud.com/desktop/latest
 .. _`Nextcloud Sync Client`: https://nextcloud.com/install/#install-clients
 
 Mobile clients
@@ -24,4 +24,8 @@ Mobile clients
 
 Visit your Personal page in your Nextcloud Web interface to find download links
 for Android and iOS mobile sync clients. Or, visit the `Nextcloud download page
-<https://nextcloud.com/install/>`_.
+<https://nextcloud.com/install/>`_.  
+
+Unfortunately, 2-way-sync, a.k.a bidirectional sync, isn't fully implemented in
+the Android client yet. See `this issue on GitHub <https://github.com/nextcloud/android/issues/19>`_
+for the current feature's status.
